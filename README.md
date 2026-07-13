@@ -1,153 +1,89 @@
-# Phishing Detector
+# Virus Checker Extension
 
-A real-time phishing detection system combining machine learning, a REST API, and a Chrome Extension to identify malicious URLs and emails before they cause harm.
+A Google Chrome extension that checks files and URLs for viruses/malware before the user downloads a file or accesses a link, using the VirusTotal API.
 
+## About the project
 
----
+When a user attempts to download a file or navigate to a suspicious URL, the extension intercepts the action and sends the relevant information to the backend, which queries the [VirusTotal API](https://developers.virustotal.com/reference/overview) to determine whether the file/URL is malicious. The result is displayed to the user in real time, allowing them to decide whether to proceed.
 
-## Overview
-
-Phishing Detector provides organizations and individuals with a layered defense against phishing attacks. It combines a machine learning model trained on known malicious patterns with real-time browser integration, giving users immediate feedback before interacting with suspicious content.
-
----
-
-## Features
-
-- **URL Scanner** — assigns a threat score from 0 to 100 based on domain reputation, redirects, and structural patterns
-- **SSL Certificate Verification** — validates certificate authenticity and chain of trust
-- **Fake Login Page Detection** — identifies credential-harvesting pages using visual and structural heuristics
-- **Chrome Extension** — provides real-time alerts and inline threat indicators via Manifest v3
-- **Email Phishing Detector** — AI-powered analysis of email headers, links, and body content
-- **Analytics Dashboard** — visualizes threat trends, scan history, and detection metrics
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Backend | Python 3.10+, Flask, Scikit-learn |
-| Frontend | React, Tailwind CSS |
-| Extension | Chrome Manifest v3 |
-| Database | MongoDB |
-| Infrastructure | Docker |
-
----
-
-## Project Structure
+## Project structure
 
 ```
-phishing-detector/
-├── backend/
-│   ├── app/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   └── utils/
+.
+├── backend
+│   ├── app
+│   │   ├── routes       # API endpoints (e.g. /check-url, /check-file)
+│   │   └── services     # Integration logic with the external verification API
+│   ├── Dockerfile
 │   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   └── hooks/
-│   ├── package.json
-│   └── Dockerfile
-├── extension/
-│   ├── manifest.json
-│   ├── background.js
-│   └── popup/
+│   └── tests
+├── extension
+│   ├── background.js    # Listens for browser events (downloads, navigation)
+│   ├── content.js       # Interacts with the page the user is visiting
+│   ├── manifest.json    # Extension configuration
+│   └── popup            # Extension UI (HTML/CSS/JS)
 ├── docker-compose.yml
 └── README.md
 ```
 
----
+## Tech stack
 
-## Getting Started
+- **Backend:** Python (Flask/FastAPI)
+- **Extension:** JavaScript (Manifest V3)
+- **Infrastructure:** Docker / Docker Compose
+- **External API:** [VirusTotal API](https://developers.virustotal.com/reference/overview)
 
-### Prerequisites
-
-- Python 3.10 or higher
-- Node.js 18 or higher
-- Docker and Docker Compose
+## Getting started
 
 ### Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate        # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
+docker build -t virus-checker-backend .
+docker run -p 8000:8000 --env-file .env virus-checker-backend
 ```
 
-The API will be available at `http://localhost:5000`.
-
-### Frontend
+Or, using Docker Compose:
 
 ```bash
-cd frontend
-npm install
-npm run dev
+docker-compose up --build
 ```
 
-The dashboard will be available at `http://localhost:3000`.
+### Environment variables
 
-### Chrome Extension
+Create a `.env` file inside `backend/` with:
 
-1. Open Chrome and navigate to `chrome://extensions`
-2. Enable **Developer mode** in the top-right corner
-3. Click **Load unpacked** and select the `extension/` directory
-4. The extension icon will appear in the toolbar
+```
+VT_API_KEY=your_virustotal_api_key
+```
 
-### Docker (all services)
+> A free API key can be obtained by creating an account at [virustotal.com](https://www.virustotal.com/). Note the free tier's rate limits (e.g. 4 requests/minute).
+
+### Extension
+
+1. Go to `chrome://extensions` in Google Chrome.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and select the `extension/` folder.
+4. The extension will appear in the browser toolbar.
+
+## How it works
+
+1. The user attempts to download a file or access a URL.
+2. `background.js`/`content.js` capture the event and send a request to the backend.
+3. The backend queries the VirusTotal API (file upload or URL analysis).
+4. The result is returned and displayed in the `popup` or as an alert on the page.
+
+## Testing
 
 ```bash
-docker compose up --build
+cd backend
+pytest
 ```
 
----
+## Team
 
-## Usage
+- [Add team member names]
 
-**Scanning a URL**
+## License
 
-Send a POST request to the API with the target URL:
-
-```bash
-curl -X POST http://localhost:5000/api/scan \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
-```
-
-**Response**
-
-```json
-{
-  "url": "https://example.com",
-  "threat_score": 12,
-  "ssl_valid": true,
-  "is_phishing": false,
-  "details": {
-    "domain_age_days": 3420,
-    "redirects": 0,
-    "suspicious_keywords": []
-  }
-}
-```
-
----
-
-## Contributing
-
-Contributions are welcome. To get started:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "Add your feature"`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a pull request
-
-Please follow the existing code style and include tests for new functionality.
-
----
-
+[Define license, e.g. MIT]
